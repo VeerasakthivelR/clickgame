@@ -6,10 +6,7 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
 
 <style>
-* {
-    box-sizing: border-box;
-    -webkit-tap-highlight-color: transparent;
-}
+* { box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
 
 body {
     margin: 0;
@@ -19,6 +16,7 @@ body {
     color: #fff;
 }
 
+/* Screens */
 .screen {
     width: 100%;
     height: 100%;
@@ -29,10 +27,14 @@ body {
     align-items: center;
     justify-content: center;
     text-align: center;
+    position: absolute;
+    top: 0;
+    left: 0;
 }
 
 .hidden { display: none; }
 
+/* Buttons */
 button {
     border: none;
     border-radius: 14px;
@@ -43,10 +45,14 @@ button {
     color: #000;
 }
 
-.toggle {
-    font-size: 14px;
-    margin-top: 6px;
+/* Home */
+.stats {
+    font-size: 15px;
+    opacity: 0.9;
+    margin-bottom: 14px;
 }
+
+.toggle { font-size: 14px; margin-top: 6px; }
 
 .watermark {
     font-size: 11px;
@@ -54,6 +60,7 @@ button {
     margin-top: 16px;
 }
 
+/* Game UI */
 .topbar {
     font-size: 14px;
     margin-bottom: 10px;
@@ -72,51 +79,70 @@ button {
     border-radius: 14px;
     background: rgba(255,255,255,0.15);
     color: #fff;
-    font-size: 18px;
-    transition: opacity 0.4s, transform 0.2s;
+    font-size: 17px;
+    transition: opacity .4s, transform .3s;
 }
 
 .fade {
     opacity: 0;
     pointer-events: none;
-    transform: scale(0.9);
+    transform: scale(.85);
 }
 
-.pulse {
-    animation: pulse 0.6s ease-out;
-}
-
+/* Animations */
+.pulse { animation: pulse .6s ease-out; }
 @keyframes pulse {
-    0% { transform: scale(1); box-shadow: 0 0 0 rgba(52,199,89,0.8); }
-    50% { transform: scale(1.12); box-shadow: 0 0 18px rgba(52,199,89,1); }
-    100% { transform: scale(1); box-shadow: 0 0 0 rgba(52,199,89,0); }
+    0% { transform: scale(1); }
+    50% { transform: scale(1.12); box-shadow: 0 0 18px #34C759; }
+    100% { transform: scale(1); }
 }
 
 .hint {
-    box-shadow: 0 0 16px rgba(52,199,89,0.9);
+    box-shadow: 0 0 18px rgba(52,199,89,.9);
     border: 2px solid #34C759;
 }
 
-.flash {
-    animation: flashRed 0.4s ease-in-out;
-}
-
+/* Bomb */
+.flash { animation: flashRed .4s; }
 @keyframes flashRed {
-    0%   { background: rgba(255,0,0,0.85); }
-    50%  { background: rgba(255,0,0,0.35); }
-    100% { background: rgba(0,0,0,0.65); }
+    0% { background: rgba(255,0,0,.85); }
+    50% { background: rgba(255,0,0,.35); }
+    100% { background: rgba(0,0,0,.65); }
 }
 
-.bombAnim {
-    animation: shake 0.4s infinite;
-}
-
+.shake { animation: shake .4s; }
 @keyframes shake {
-    0% { transform: translateX(0); }
-    25% { transform: translateX(6px); }
-    50% { transform: translateX(-6px); }
-    75% { transform: translateX(6px); }
-    100% { transform: translateX(0); }
+    0%{transform:translate(0)}
+    25%{transform:translate(-6px,4px)}
+    50%{transform:translate(6px,-4px)}
+    75%{transform:translate(-4px,-6px)}
+    100%{transform:translate(0)}
+}
+
+.explosion {
+    position: absolute;
+    width: 20px;
+    height: 20px;
+    border-radius: 50%;
+    background: rgba(255,60,60,.9);
+    animation: explode .6s ease-out forwards;
+}
+
+@keyframes explode {
+    0% { transform: scale(1); opacity: 1; }
+    100% { transform: scale(22); opacity: 0; }
+}
+
+/* FULLSCREEN LEVEL SCREEN */
+.level-screen {
+    font-size: 48px;
+    font-weight: bold;
+    animation: zoomIn .6s ease-out;
+}
+
+@keyframes zoomIn {
+    0% { opacity: 0; transform: scale(.6); }
+    100% { opacity: 1; transform: scale(1); }
 }
 </style>
 </head>
@@ -125,28 +151,29 @@ button {
 
 <!-- HOME -->
 <div class="screen" id="home">
-    <h1>Are you ready to play?</h1>
+    <h1>Bomb Exit Game 💣</h1>
 
-    <div class="toggle">
-        <label><input type="checkbox" id="soundToggle"> 🔊 Sound</label>
-    </div>
-    <div class="toggle">
-        <label><input type="checkbox" id="vibrationToggle"> 🎮 Vibration</label>
+    <div class="stats">
+        Best Score: <span id="bestLevel">0</span> Levels Passed
     </div>
 
-    <button onclick="startGame()">YES</button>
-    <button onclick="missed()">NO</button>
+    <div class="toggle"><label><input type="checkbox" id="soundToggle"> 🔊 Sound</label></div>
+    <div class="toggle"><label><input type="checkbox" id="vibrationToggle"> 🎮 Vibration</label></div>
 
+    <button onclick="startGame()">START</button>
     <div class="watermark">Game Developed by Sakthii</div>
 </div>
 
 <!-- GAME -->
 <div class="screen hidden" id="game">
-    <div class="topbar">
-        ⏱️ <span id="time">120</span>s | Level <span id="level">1</span>
-    </div>
+    <div class="topbar">⏱️ <span id="time">120</span>s | Level <span id="levelEl">1</span></div>
     <h2>Find the safe exit 👇</h2>
     <div class="grid" id="grid"></div>
+</div>
+
+<!-- LEVEL TRANSITION -->
+<div class="screen hidden" id="levelScreen">
+    <div class="level-screen" id="levelText"></div>
 </div>
 
 <!-- RESULT -->
@@ -164,135 +191,133 @@ button {
 const TOTAL_BTNS = 15;
 const GAME_TIME = 120;
 
-let level = 1;
-let timeLeft = GAME_TIME;
-let timer;
-let bombIndexes = [];
-let safeIndex = -1;
-let safeClicks = 0;
-let levelTransition = false;
+let level = 1, timeLeft = GAME_TIME;
+let bombIndexes = [], safeIndex = -1;
+let safeClicks = 0, transitioning = false, timer;
 
-function vibrate(p) {
-    if (vibrationToggle.checked) navigator.vibrate?.(p);
-}
+bestLevel.textContent = localStorage.getItem("bestLevel") || 0;
 
-function play(a, v) {
-    if (!soundToggle.checked) return;
-    a.currentTime = 0;
-    a.volume = v;
-    a.play().catch(()=>{});
-}
+function play(a,v){ if(!soundToggle.checked) return; a.currentTime=0;a.volume=v;a.play().catch(()=>{}); }
+function vibrate(p){ if(vibrationToggle.checked) navigator.vibrate?.(p); }
 
-function missed() {
-    alert("Ohh sorry, you missed the gameplay 😕");
-}
-
-function startGame() {
+function startGame(){
     home.classList.add("hidden");
     game.classList.remove("hidden");
-
     level = 1;
     timeLeft = GAME_TIME;
     time.textContent = timeLeft;
-
-    play(tickSound, 0.15);
+    play(tickSound,.15);
     startTimer();
     loadLevel();
 }
 
-function startTimer() {
+function startTimer(){
     clearInterval(timer);
-    timer = setInterval(() => {
+    timer=setInterval(()=>{
         timeLeft--;
-        time.textContent = timeLeft;
-        if (timeLeft <= 0) endGame("⏱️ Time’s up!");
-    }, 1000);
+        time.textContent=timeLeft;
+        if(timeLeft<=0) endGame("⏱️ Time’s up!");
+    },1000);
 }
 
-function loadLevel() {
-    levelTransition = false;
-    safeClicks = 0;
-    levelEl.textContent = level;
-    grid.innerHTML = "";
+function loadLevel(){
+    transitioning=false;
+    safeClicks=0;
+    levelEl.textContent=level;
+    grid.innerHTML="";
+    bombIndexes=[];
 
-    bombIndexes = [];
-    while (bombIndexes.length < level) {
-        let r = Math.floor(Math.random() * TOTAL_BTNS);
-        if (!bombIndexes.includes(r)) bombIndexes.push(r);
+    while(bombIndexes.length<level){
+        let r=Math.floor(Math.random()*TOTAL_BTNS);
+        if(!bombIndexes.includes(r)) bombIndexes.push(r);
     }
+    do{ safeIndex=Math.floor(Math.random()*TOTAL_BTNS); }
+    while(bombIndexes.includes(safeIndex));
 
-    do {
-        safeIndex = Math.floor(Math.random() * TOTAL_BTNS);
-    } while (bombIndexes.includes(safeIndex));
-
-    for (let i = 0; i < TOTAL_BTNS; i++) {
-        const b = document.createElement("button");
-        b.className = "game-btn";
-        b.textContent = "Click";
-        b.onclick = () => handleClick(i, b);
+    for(let i=0;i<TOTAL_BTNS;i++){
+        const b=document.createElement("button");
+        b.className="game-btn";
+        b.textContent="Click";
+        b.onclick=()=>handleClick(i,b);
         grid.appendChild(b);
     }
 }
 
-function handleClick(i, btn) {
-    if (levelTransition) return;
+function showLevelScreen(nextLevel){
+    game.classList.add("hidden");
+    levelScreen.classList.remove("hidden");
+    levelText.textContent = "LEVEL " + nextLevel;
 
-    if (i === safeIndex) {
-        levelTransition = true;
-        play(safeSound, 0.4);
-        vibrate(80);
+    setTimeout(()=>{
+        levelScreen.classList.add("hidden");
+        game.classList.remove("hidden");
+        loadLevel();
+    },2000);
+}
+
+function handleClick(i,btn){
+    if(transitioning) return;
+
+    if(i===safeIndex){
+        transitioning=true;
+        play(safeSound,.4);
         btn.classList.add("pulse");
 
-        setTimeout(() => {
+        document.querySelectorAll(".game-btn").forEach(b=>{
+            if(b!==btn) b.classList.add("fade");
+        });
+
+        setTimeout(()=>{
             level++;
-            loadLevel();
-        }, 500);
+            showLevelScreen(level);
+        },600);
         return;
     }
 
-    if (bombIndexes.includes(i)) {
-        levelTransition = true;
-        play(bombSound, 0.6);
-        vibrate([250,120,250]);
-        game.classList.add("flash");
+    if(bombIndexes.includes(i)){
+        transitioning=true;
+        play(bombSound,.6);
+        vibrate([200,100,200]);
+        game.classList.add("flash","shake");
 
-        setTimeout(() => {
-            game.classList.remove("flash");
+        const boom=document.createElement("div");
+        boom.className="explosion";
+        game.appendChild(boom);
+
+        setTimeout(()=>{
+            boom.remove();
+            game.classList.remove("flash","shake");
             endGame("💣 BOOM! You’re Out");
-        }, 350);
+        },600);
         return;
     }
 
     safeClicks++;
-    btn.innerHTML = "❌<br><small>You are safe now,<br>find the safe exit<br>to pass this level</small>";
-    btn.disabled = true;
-    btn.style.fontSize = "12px";
-    btn.style.lineHeight = "1.2";
+    btn.innerHTML="❌";
     btn.classList.add("fade");
     vibrate(30);
 
-    if (safeClicks === 3) {
+    if(safeClicks===3){
         document.querySelectorAll(".game-btn")[safeIndex]?.classList.add("hint");
     }
 }
 
-function endGame(text) {
+function endGame(text){
     clearInterval(timer);
     tickSound.pause();
     game.classList.add("hidden");
     result.classList.remove("hidden");
-    result.classList.add("bombAnim");
-    resultText.textContent = text;
+    resultText.textContent=text;
+
+    const best=Math.max(level-1,Number(localStorage.getItem("bestLevel")||0));
+    localStorage.setItem("bestLevel",best);
+    bestLevel.textContent=best;
 }
 
-function resetGame() {
-    result.classList.remove("bombAnim");
+function resetGame(){
     result.classList.add("hidden");
     home.classList.remove("hidden");
 }
-
-const time = document.getElementById("time");
-const levelEl = document.getElementById("level");
 </script>
 
 </body>
