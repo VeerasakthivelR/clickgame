@@ -2,17 +2,10 @@
 <html lang="en">
 <head>
 <meta charset="UTF-8">
-<title>Bomb Survival 💣</title>
+<title>Bomb Exit Game 💣</title>
 <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
 
 <style>
-:root {
-    --bg: rgba(0,0,0,0.65);
-    --btn: rgba(255,255,255,0.15);
-    --text: #fff;
-    --accent: #34C759;
-}
-
 * {
     box-sizing: border-box;
     -webkit-tap-highlight-color: transparent;
@@ -23,73 +16,47 @@ body {
     height: 100vh;
     font-family: -apple-system, BlinkMacSystemFont, Arial, sans-serif;
     background: radial-gradient(circle at top, #222, #000);
-    color: var(--text);
+    color: #fff;
 }
 
 .screen {
     width: 100%;
     height: 100%;
-    padding: env(safe-area-inset-top) env(safe-area-inset-right)
-             env(safe-area-inset-bottom) env(safe-area-inset-left);
     backdrop-filter: blur(6px);
-    background: var(--bg);
+    background: rgba(0,0,0,0.65);
     display: flex;
     flex-direction: column;
     align-items: center;
     justify-content: center;
     text-align: center;
 }
+
 .hidden { display: none; }
-
-h1 { font-size: 26px; margin-bottom: 6px; }
-h2 { font-size: 18px; margin-bottom: 8px; }
-
-input {
-    width: 220px;
-    padding: 12px;
-    border-radius: 12px;
-    border: none;
-    margin: 10px 0;
-    font-size: 15px;
-    text-align: center;
-}
 
 button {
     border: none;
     border-radius: 14px;
-    padding: 12px 22px;
-    margin-top: 10px;
-    font-size: 15px;
-    background: var(--accent);
+    padding: 14px 26px;
+    margin: 10px;
+    font-size: 16px;
+    background: #34C759;
     color: #000;
 }
 
-/* Toggles */
 .toggle {
     font-size: 14px;
     margin-top: 6px;
 }
 
-/* Leaderboard */
-.board {
-    font-size: 14px;
-    margin-top: 10px;
-    opacity: 0.9;
-}
-
-/* Watermark (HOME ONLY) */
 .watermark {
     font-size: 11px;
-    opacity: 0.45;
-    margin-top: 14px;
-    user-select: none;
-    pointer-events: none;
+    opacity: 0.4;
+    margin-top: 16px;
 }
 
-/* Game */
-.scorebar {
+.topbar {
     font-size: 14px;
-    margin-bottom: 6px;
+    margin-bottom: 10px;
 }
 
 .grid {
@@ -101,20 +68,49 @@ button {
 }
 
 .game-btn {
-    background: var(--btn);
     height: 52px;
     border-radius: 14px;
+    background: rgba(255,255,255,0.15);
+    color: #fff;
     font-size: 18px;
-    color: var(--text);
-    display: flex;
-    align-items: center;
-    justify-content: center;
+    transition: opacity 0.4s, transform 0.2s;
 }
 
-/* Bomb shake */
-.bomb {
+.fade {
+    opacity: 0;
+    pointer-events: none;
+    transform: scale(0.9);
+}
+
+.pulse {
+    animation: pulse 0.6s ease-out;
+}
+
+@keyframes pulse {
+    0% { transform: scale(1); box-shadow: 0 0 0 rgba(52,199,89,0.8); }
+    50% { transform: scale(1.12); box-shadow: 0 0 18px rgba(52,199,89,1); }
+    100% { transform: scale(1); box-shadow: 0 0 0 rgba(52,199,89,0); }
+}
+
+.hint {
+    box-shadow: 0 0 16px rgba(52,199,89,0.9);
+    border: 2px solid #34C759;
+}
+
+.flash {
+    animation: flashRed 0.4s ease-in-out;
+}
+
+@keyframes flashRed {
+    0%   { background: rgba(255,0,0,0.85); }
+    50%  { background: rgba(255,0,0,0.35); }
+    100% { background: rgba(0,0,0,0.65); }
+}
+
+.bombAnim {
     animation: shake 0.4s infinite;
 }
+
 @keyframes shake {
     0% { transform: translateX(0); }
     25% { transform: translateX(6px); }
@@ -129,10 +125,7 @@ button {
 
 <!-- HOME -->
 <div class="screen" id="home">
-    <h1>Bomb Survival 💣</h1>
-    <p>Safe click = +1 · Bomb = Game Over</p>
-
-    <input id="playerName" placeholder="Enter your name" maxlength="12">
+    <h1>Are you ready to play?</h1>
 
     <div class="toggle">
         <label><input type="checkbox" id="soundToggle"> 🔊 Sound</label>
@@ -141,168 +134,165 @@ button {
         <label><input type="checkbox" id="vibrationToggle"> 🎮 Vibration</label>
     </div>
 
-    <div class="board" id="leaderboard"></div>
+    <button onclick="startGame()">YES</button>
+    <button onclick="missed()">NO</button>
 
-    <button onclick="startGame()">Start Game</button>
-
-    <!-- Watermark -->
-    <div class="watermark">
-        Game designed by Veerasakthivel
-    </div>
+    <div class="watermark">Game Developed by Sakthii</div>
 </div>
 
 <!-- GAME -->
 <div class="screen hidden" id="game">
-    <div class="scorebar">
-        👤 <span id="nameLabel"></span> |
-        Score: <span id="score">0</span> |
-        Combo: <span id="combo">x1</span> |
-        Time: <span id="time">120</span>s
+    <div class="topbar">
+        ⏱️ <span id="time">120</span>s | Level <span id="level">1</span>
     </div>
-    <h2>Tap carefully 👇</h2>
-    <div class="grid" id="buttons"></div>
+    <h2>Find the safe exit 👇</h2>
+    <div class="grid" id="grid"></div>
 </div>
 
 <!-- RESULT -->
 <div class="screen hidden" id="result">
     <h1 id="resultText"></h1>
-    <p id="finalScore"></p>
     <button onclick="resetGame()">🔁 Play Again</button>
 </div>
 
 <!-- AUDIO -->
-<audio id="bombSound" src="bomb.mp3" preload="auto"></audio>
-<audio id="tickSound" src="tick.mp3" preload="auto"></audio>
-<audio id="clockSound" src="clock.mp3" loop preload="auto"></audio>
+<audio id="bombSound" src="bomb.mp3"></audio>
+<audio id="safeSound" src="safe.mp3"></audio>
+<audio id="tickSound" src="tick.mp3" loop></audio>
 
 <script>
-const totalButtons = 15;
-const bombCount = 3;
+const TOTAL_BTNS = 15;
 const GAME_TIME = 120;
 
-let bombIndexes = [];
-let score = 0;
-let combo = 1;
+let level = 1;
 let timeLeft = GAME_TIME;
-let timer = null;
-let player = "";
+let timer;
+let bombIndexes = [];
+let safeIndex = -1;
+let safeClicks = 0;
+let levelTransition = false;
 
-function vibrate(pattern) {
-    if (!vibrationToggle.checked) return;
-    navigator.vibrate?.(pattern);
+function vibrate(p) {
+    if (vibrationToggle.checked) navigator.vibrate?.(p);
 }
 
-function playSound(audio, volume) {
+function play(a, v) {
     if (!soundToggle.checked) return;
-    audio.currentTime = 0;
-    audio.volume = volume;
-    audio.play().catch(()=>{});
+    a.currentTime = 0;
+    a.volume = v;
+    a.play().catch(()=>{});
 }
 
-function loadLeaderboard() {
-    const data = JSON.parse(localStorage.getItem("leaderboard") || "[]");
-    leaderboard.innerHTML =
-        "🏆 Leaderboard<br>" +
-        (data.length ? data.map(e => `${e.name}: ${e.score}`).join("<br>") : "No scores yet");
-}
-
-function saveScore() {
-    let data = JSON.parse(localStorage.getItem("leaderboard") || "[]");
-    data.push({ name: player, score });
-    data.sort((a,b)=>b.score-a.score);
-    data = data.slice(0,5);
-    localStorage.setItem("leaderboard", JSON.stringify(data));
+function missed() {
+    alert("Ohh sorry, you missed the gameplay 😕");
 }
 
 function startGame() {
-    if (!playerName.value.trim()) {
-        alert("Please enter your name");
-        return;
-    }
+    home.classList.add("hidden");
+    game.classList.remove("hidden");
 
-    player = playerName.value.trim();
-    nameLabel.textContent = player;
-
-    score = 0;
-    combo = 1;
+    level = 1;
     timeLeft = GAME_TIME;
+    time.textContent = timeLeft;
 
-    scoreEl.textContent = 0;
-    comboEl.textContent = "x1";
-    timeEl.textContent = timeLeft;
+    play(tickSound, 0.15);
+    startTimer();
+    loadLevel();
+}
+
+function startTimer() {
+    clearInterval(timer);
+    timer = setInterval(() => {
+        timeLeft--;
+        time.textContent = timeLeft;
+        if (timeLeft <= 0) endGame("⏱️ Time’s up!");
+    }, 1000);
+}
+
+function loadLevel() {
+    levelTransition = false;
+    safeClicks = 0;
+    levelEl.textContent = level;
+    grid.innerHTML = "";
 
     bombIndexes = [];
-    while (bombIndexes.length < bombCount) {
-        const r = Math.floor(Math.random() * totalButtons);
+    while (bombIndexes.length < level) {
+        let r = Math.floor(Math.random() * TOTAL_BTNS);
         if (!bombIndexes.includes(r)) bombIndexes.push(r);
     }
 
-    buttons.innerHTML = "";
-    for (let i = 0; i < totalButtons; i++) {
+    do {
+        safeIndex = Math.floor(Math.random() * TOTAL_BTNS);
+    } while (bombIndexes.includes(safeIndex));
+
+    for (let i = 0; i < TOTAL_BTNS; i++) {
         const b = document.createElement("button");
         b.className = "game-btn";
         b.textContent = "Click";
         b.onclick = () => handleClick(i, b);
-        buttons.appendChild(b);
+        grid.appendChild(b);
     }
-
-    timer = setInterval(() => {
-        timeLeft--;
-        timeEl.textContent = timeLeft;
-        if (timeLeft <= 0) endGame("⏱️ Time Up!");
-    }, 1000);
-
-    if (soundToggle.checked) {
-        clockSound.volume = 0.15;
-        clockSound.play().catch(()=>{});
-    }
-
-    home.classList.add("hidden");
-    game.classList.remove("hidden");
 }
 
 function handleClick(i, btn) {
+    if (levelTransition) return;
+
+    if (i === safeIndex) {
+        levelTransition = true;
+        play(safeSound, 0.4);
+        vibrate(80);
+        btn.classList.add("pulse");
+
+        setTimeout(() => {
+            level++;
+            loadLevel();
+        }, 500);
+        return;
+    }
+
     if (bombIndexes.includes(i)) {
-        playSound(bombSound, 0.6);
-        vibrate([300,150,300]);
-        endGame("💣 BOOM! You’re Out");
-    } else {
-        playSound(tickSound, 0.25);
-        score += combo;
-        combo++;
-        scoreEl.textContent = score;
-        comboEl.textContent = "x" + combo;
-        btn.textContent = "❌";
-        btn.disabled = true;
-        btn.style.opacity = "0";
+        levelTransition = true;
+        play(bombSound, 0.6);
+        vibrate([250,120,250]);
+        game.classList.add("flash");
+
+        setTimeout(() => {
+            game.classList.remove("flash");
+            endGame("💣 BOOM! You’re Out");
+        }, 350);
+        return;
+    }
+
+    safeClicks++;
+    btn.innerHTML = "❌<br><small>You are safe now,<br>find the safe exit<br>to pass this level</small>";
+    btn.disabled = true;
+    btn.style.fontSize = "12px";
+    btn.style.lineHeight = "1.2";
+    btn.classList.add("fade");
+    vibrate(30);
+
+    if (safeClicks === 3) {
+        document.querySelectorAll(".game-btn")[safeIndex]?.classList.add("hint");
     }
 }
 
 function endGame(text) {
     clearInterval(timer);
-    clockSound.pause();
-    saveScore();
-    loadLeaderboard();
-
+    tickSound.pause();
     game.classList.add("hidden");
     result.classList.remove("hidden");
-    result.classList.add("bomb");
-
+    result.classList.add("bombAnim");
     resultText.textContent = text;
-    finalScore.textContent = `${player}, your score: ${score}`;
 }
 
 function resetGame() {
-    result.classList.remove("bomb");
+    result.classList.remove("bombAnim");
     result.classList.add("hidden");
     home.classList.remove("hidden");
 }
 
-const scoreEl = document.getElementById("score");
-const comboEl = document.getElementById("combo");
-const timeEl = document.getElementById("time");
-
-loadLeaderboard();
+const time = document.getElementById("time");
+const levelEl = document.getElementById("level");
 </script>
 
 </body>
