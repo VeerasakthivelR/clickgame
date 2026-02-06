@@ -1,0 +1,197 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Game Play</title>
+
+<style>
+body {
+    margin: 0;
+    font-family: Arial, sans-serif;
+}
+
+/* Utility */
+.hidden { display: none; }
+.center {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    flex-direction: column;
+}
+
+/* HOME */
+#home {
+    height: 100vh;
+    background: url('https://images.unsplash.com/photo-1500530855697-b586d89ba3ee') center/cover no-repeat;
+    position: relative;
+}
+#home::before {
+    content: "";
+    position: absolute;
+    inset: 0;
+    backdrop-filter: blur(4px);
+    pointer-events: none;
+}
+.home-content {
+    position: relative;
+    color: white;
+    text-align: center;
+}
+.home-content button {
+    padding: 12px 28px;
+    margin: 10px;
+    font-size: 16px;
+    border-radius: 8px;
+    border: none;
+    cursor: pointer;
+}
+
+/* GAME */
+#game {
+    min-height: 100vh;
+    background: url('https://images.unsplash.com/photo-1521737604893-d14cc237f11d') center/cover no-repeat;
+    padding: 20px;
+}
+
+.buttons {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 15px;
+    max-width: 360px;
+    margin: auto;
+}
+
+.game-btn {
+    padding: 15px;
+    font-size: 14px;
+    border-radius: 8px;
+    border: none;
+    cursor: pointer;
+}
+
+/* Fullscreen result */
+#resultScreen {
+    position: fixed;
+    inset: 0;
+    background: rgba(0,0,0,0.9);
+    color: white;
+    font-size: 32px;
+    font-weight: bold;
+    display: none;
+    justify-content: center;
+    align-items: center;
+    text-align: center;
+    z-index: 999;
+}
+
+/* Animations */
+.boom {
+    animation: boom 0.6s infinite alternate;
+}
+@keyframes boom {
+    from { transform: scale(1); }
+    to { transform: scale(1.1); }
+}
+
+.win {
+    animation: win 1s infinite;
+}
+@keyframes win {
+    0% { transform: scale(1); color: gold; }
+    50% { transform: scale(1.2); color: #fff700; }
+    100% { transform: scale(1); color: gold; }
+}
+
+.fade {
+    animation: fade 0.4s forwards;
+}
+@keyframes fade {
+    to { opacity: 0; transform: scale(0.7); }
+}
+</style>
+</head>
+
+<body>
+
+<!-- HOME -->
+<div id="home" class="center">
+    <div class="home-content">
+        <h1>Are you ready to play?</h1>
+        <button onclick="startGame()">YES</button>
+        <button onclick="missGame()">NO</button>
+        <p id="homeMsg"></p>
+    </div>
+</div>
+
+<!-- GAME -->
+<div id="game" class="hidden center">
+    <div class="buttons" id="buttons"></div>
+</div>
+
+<!-- RESULT SCREEN -->
+<div id="resultScreen" class="center"></div>
+
+<script>
+let gameOver = false;
+
+function missGame() {
+    document.getElementById("homeMsg").innerText =
+        "Ohh sorry, you missed the gameplay!";
+}
+
+function startGame() {
+    document.getElementById("home").style.display = "none";
+    document.getElementById("game").classList.remove("hidden");
+    gameOver = false;
+    createButtons();
+}
+
+function createButtons() {
+    const container = document.getElementById("buttons");
+    container.innerHTML = "";
+
+    let results = ["bomb", "prize"];
+    for (let i = 0; i < 13; i++) results.push("try");
+    results.sort(() => Math.random() - 0.5);
+
+    results.forEach(type => {
+        const btn = document.createElement("button");
+        btn.className = "game-btn";
+        btn.innerText = "Click Me";
+        btn.onclick = () => handleClick(btn, type);
+        container.appendChild(btn);
+    });
+}
+
+function handleClick(button, type) {
+    if (gameOver) return;
+
+    if (type === "bomb") {
+        endGame("💣 BOOM!<br>You are out", "boom");
+    }
+    else if (type === "prize") {
+        endGame("🎉 WOW!<br>You won the prize", "win");
+    }
+    else {
+        button.innerText = "Better luck next time";
+        button.classList.add("fade");
+        setTimeout(() => button.remove(), 400);
+    }
+}
+
+function endGame(text, animation) {
+    gameOver = true;
+
+    // remove all buttons
+    document.querySelectorAll(".game-btn").forEach(btn => btn.remove());
+
+    const screen = document.getElementById("resultScreen");
+    screen.innerHTML = text;
+    screen.className = "center " + animation;
+    screen.style.display = "flex";
+}
+</script>
+
+</body>
+</html>
