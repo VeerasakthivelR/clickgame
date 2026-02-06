@@ -16,7 +16,6 @@ body {
     color: #fff;
 }
 
-/* Screens */
 .screen {
     width: 100%;
     height: 100%;
@@ -34,7 +33,6 @@ body {
 
 .hidden { display: none; }
 
-/* Buttons */
 button {
     border: none;
     border-radius: 14px;
@@ -45,7 +43,6 @@ button {
     color: #000;
 }
 
-/* Home */
 .stats {
     font-size: 15px;
     opacity: 0.9;
@@ -60,7 +57,6 @@ button {
     margin-top: 16px;
 }
 
-/* Game UI */
 .topbar {
     font-size: 14px;
     margin-bottom: 10px;
@@ -89,7 +85,6 @@ button {
     transform: scale(.85);
 }
 
-/* Animations */
 .pulse { animation: pulse .6s ease-out; }
 @keyframes pulse {
     0% { transform: scale(1); }
@@ -102,7 +97,6 @@ button {
     border: 2px solid #34C759;
 }
 
-/* Bomb */
 .flash { animation: flashRed .4s; }
 @keyframes flashRed {
     0% { background: rgba(255,0,0,.85); }
@@ -133,7 +127,6 @@ button {
     100% { transform: scale(22); opacity: 0; }
 }
 
-/* FULLSCREEN LEVEL SCREEN */
 .level-screen {
     font-size: 48px;
     font-weight: bold;
@@ -152,14 +145,11 @@ button {
 <!-- HOME -->
 <div class="screen" id="home">
     <h1>Bomb Exit Game 💣</h1>
-
     <div class="stats">
         Best Score: <span id="bestLevel">0</span> Levels Passed
     </div>
-
     <div class="toggle"><label><input type="checkbox" id="soundToggle"> 🔊 Sound</label></div>
     <div class="toggle"><label><input type="checkbox" id="vibrationToggle"> 🎮 Vibration</label></div>
-
     <button onclick="startGame()">START</button>
     <div class="watermark">Game Developed by Sakthii</div>
 </div>
@@ -171,7 +161,7 @@ button {
     <div class="grid" id="grid"></div>
 </div>
 
-<!-- LEVEL TRANSITION -->
+<!-- LEVEL -->
 <div class="screen hidden" id="levelScreen">
     <div class="level-screen" id="levelText"></div>
 </div>
@@ -186,6 +176,7 @@ button {
 <audio id="bombSound" src="bomb.mp3"></audio>
 <audio id="safeSound" src="safe.mp3"></audio>
 <audio id="tickSound" src="tick.mp3" loop></audio>
+<audio id="bgMusic" src="bg-music.mp3" loop></audio>
 
 <script>
 const TOTAL_BTNS = 15;
@@ -197,7 +188,24 @@ let safeClicks = 0, transitioning = false, timer;
 
 bestLevel.textContent = localStorage.getItem("bestLevel") || 0;
 
-function play(a,v){ if(!soundToggle.checked) return; a.currentTime=0;a.volume=v;a.play().catch(()=>{}); }
+function play(a,v){
+    if(!soundToggle.checked) return;
+    a.volume = v;
+    a.currentTime = 0;
+    a.play().catch(()=>{});
+}
+
+function playBG(){
+    if(!soundToggle.checked) return;
+    bgMusic.volume = 0.08; // VERY subtle
+    bgMusic.play().catch(()=>{});
+}
+
+function stopBG(){
+    bgMusic.pause();
+    bgMusic.currentTime = 0;
+}
+
 function vibrate(p){ if(vibrationToggle.checked) navigator.vibrate?.(p); }
 
 function startGame(){
@@ -207,6 +215,7 @@ function startGame(){
     timeLeft = GAME_TIME;
     time.textContent = timeLeft;
     play(tickSound,.15);
+    playBG();
     startTimer();
     loadLevel();
 }
@@ -237,7 +246,7 @@ function loadLevel(){
     for(let i=0;i<TOTAL_BTNS;i++){
         const b=document.createElement("button");
         b.className="game-btn";
-        b.textContent="Click";
+        b.textContent="TAP";
         b.onclick=()=>handleClick(i,b);
         grid.appendChild(b);
     }
@@ -305,6 +314,7 @@ function handleClick(i,btn){
 function endGame(text){
     clearInterval(timer);
     tickSound.pause();
+    stopBG();
     game.classList.add("hidden");
     result.classList.remove("hidden");
     resultText.textContent=text;
