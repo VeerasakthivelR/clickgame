@@ -3,82 +3,90 @@
 <head>
 <meta charset="UTF-8">
 <title>Click Game 🎮</title>
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
 
 <style>
-    body {
-        margin: 0;
-        font-family: Arial, sans-serif;
-        height: 100vh;
-        background: url("https://images.unsplash.com/photo-1500530855697-b586d89ba3ee") center/cover no-repeat;
-        display: flex;
-        justify-content: center;
-        align-items: center;
-    }
+* {
+    box-sizing: border-box;
+}
 
-    .overlay {
-        backdrop-filter: blur(6px);
-        background: rgba(0,0,0,0.5);
-        width: 100%;
-        height: 100%;
-        display: flex;
-        justify-content: center;
-        align-items: center;
-        flex-direction: column;
-        color: #fff;
-        text-align: center;
-    }
+body {
+    margin: 0;
+    height: 100vh;
+    font-family: Arial, sans-serif;
+    background: url("https://images.unsplash.com/photo-1500530855697-b586d89ba3ee") center/cover no-repeat;
+}
 
-    button {
-        padding: 12px 25px;
-        font-size: 18px;
-        border: none;
-        border-radius: 8px;
-        cursor: pointer;
-        margin: 10px;
-    }
+.overlay {
+    backdrop-filter: blur(6px);
+    background: rgba(0,0,0,0.6);
+    width: 100%;
+    height: 100%;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    text-align: center;
+    color: white;
+    padding: 20px;
+}
 
-    .yes { background: #4CAF50; color: white; }
-    .no { background: #f44336; color: white; }
+h1, h2 {
+    margin-bottom: 20px;
+}
 
-    .grid {
-        display: grid;
-        grid-template-columns: repeat(5, 1fr);
-        gap: 12px;
-        margin-top: 20px;
-    }
+button {
+    padding: 14px 22px;
+    font-size: 18px;
+    border: none;
+    border-radius: 10px;
+    cursor: pointer;
+}
 
-    .game-btn {
-        background: #2196F3;
-        color: white;
-        padding: 15px;
-        border-radius: 8px;
-        font-size: 16px;
-    }
+.yes { background: #4CAF50; color: #fff; }
+.no { background: #f44336; color: #fff; }
 
-    .hidden { display: none; }
+.grid {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 12px;
+    width: 100%;
+    max-width: 360px;
+}
 
-    .explode {
-        animation: shake 0.4s infinite;
-    }
+.game-btn {
+    background: #2196F3;
+    color: white;
+    padding: 14px;
+    font-size: 16px;
+    border-radius: 10px;
+}
 
-    @keyframes shake {
-        0% { transform: translate(0); }
-        25% { transform: translate(5px); }
-        50% { transform: translate(-5px); }
-        75% { transform: translate(5px); }
-        100% { transform: translate(0); }
-    }
+.hidden {
+    display: none;
+}
 
-    .big {
-        font-size: 36px;
-        animation: pop 1s ease-in-out infinite alternate;
-    }
+.big {
+    font-size: 32px;
+    animation: pop 1s infinite alternate;
+}
 
-    @keyframes pop {
-        from { transform: scale(1); }
-        to { transform: scale(1.2); }
-    }
+@keyframes pop {
+    from { transform: scale(1); }
+    to { transform: scale(1.15); }
+}
+
+.explode {
+    animation: shake 0.4s infinite;
+}
+
+@keyframes shake {
+    0% { transform: translate(0); }
+    25% { transform: translate(5px); }
+    50% { transform: translate(-5px); }
+    75% { transform: translate(5px); }
+    100% { transform: translate(0); }
+}
 </style>
 </head>
 
@@ -93,7 +101,7 @@
 </div>
 
 <div class="overlay hidden" id="game">
-    <h2>Click any button 👇</h2>
+    <h2>Tap any button 👇</h2>
     <div class="grid" id="buttons"></div>
 </div>
 
@@ -101,66 +109,76 @@
     <h1 id="resultText" class="big"></h1>
 </div>
 
-<!-- Sounds -->
-<audio id="bombSound" src="bomb.mp3"></audio>
-<audio id="winSound" src="win.mp3"></audio>
+<!-- Audio -->
+<audio id="bombSound" src="bomb.mp3" preload="auto"></audio>
+<audio id="winSound" src="win.mp3" preload="auto"></audio>
 
 <script>
-    const totalButtons = 15;
-    let bombIndex = Math.floor(Math.random() * totalButtons);
-    let winIndex = Math.floor(Math.random() * totalButtons);
+const totalButtons = 15;
+let bombIndex = Math.floor(Math.random() * totalButtons);
+let winIndex = Math.floor(Math.random() * totalButtons);
 
-    while (winIndex === bombIndex) {
-        winIndex = Math.floor(Math.random() * totalButtons);
+while (winIndex === bombIndex) {
+    winIndex = Math.floor(Math.random() * totalButtons);
+}
+
+function unlockAudio() {
+    const bomb = document.getElementById("bombSound");
+    const win = document.getElementById("winSound");
+
+    bomb.play().then(() => bomb.pause()).catch(()=>{});
+    win.play().then(() => win.pause()).catch(()=>{});
+}
+
+function missed() {
+    document.getElementById("home").innerHTML =
+        "<h1>Ohh 😔 You missed the gameplay!</h1>";
+}
+
+function startGame() {
+    unlockAudio(); // 🔥 MOBILE AUDIO FIX
+
+    document.getElementById("home").classList.add("hidden");
+    document.getElementById("game").classList.remove("hidden");
+
+    const container = document.getElementById("buttons");
+    container.innerHTML = "";
+
+    for (let i = 0; i < totalButtons; i++) {
+        const btn = document.createElement("button");
+        btn.className = "game-btn";
+        btn.textContent = "Click Me";
+        btn.onclick = () => handleClick(i, btn);
+        container.appendChild(btn);
     }
+}
 
-    function missed() {
-        document.getElementById("home").innerHTML =
-            "<h1>Ohh 😔 You missed the game play!</h1>";
+function handleClick(index, btn) {
+    if (index === bombIndex) {
+        document.getElementById("bombSound").play();
+        endGame("💣 BOOM! You are OUT 💥", true);
     }
-
-    function startGame() {
-        document.getElementById("home").classList.add("hidden");
-        document.getElementById("game").classList.remove("hidden");
-
-        const container = document.getElementById("buttons");
-        container.innerHTML = "";
-
-        for (let i = 0; i < totalButtons; i++) {
-            const btn = document.createElement("button");
-            btn.className = "game-btn";
-            btn.textContent = "Click Me";
-            btn.onclick = () => handleClick(i, btn);
-            container.appendChild(btn);
-        }
+    else if (index === winIndex) {
+        document.getElementById("winSound").play();
+        endGame("🎉 WOW! You WON the PRIZE 🎁", false);
     }
-
-    function handleClick(index, btn) {
-        if (index === bombIndex) {
-            document.getElementById("bombSound").play();
-            endGame("💣 BOOM! You are OUT 💥", true);
-        }
-        else if (index === winIndex) {
-            document.getElementById("winSound").play();
-            endGame("🎉 WOW! You WON the PRIZE 🎁", false);
-        }
-        else {
-            btn.textContent = "Better luck next time 😌";
-            btn.disabled = true;
-            setTimeout(() => btn.style.visibility = "hidden", 800);
-        }
+    else {
+        btn.textContent = "Better luck next time 😌";
+        btn.disabled = true;
+        setTimeout(() => btn.style.visibility = "hidden", 600);
     }
+}
 
-    function endGame(message, isBomb) {
-        document.getElementById("game").classList.add("hidden");
-        const result = document.getElementById("result");
-        const text = document.getElementById("resultText");
+function endGame(message, isBomb) {
+    document.getElementById("game").classList.add("hidden");
+    const result = document.getElementById("result");
+    const text = document.getElementById("resultText");
 
-        text.textContent = message;
-        if (isBomb) result.classList.add("explode");
+    text.textContent = message;
+    if (isBomb) result.classList.add("explode");
 
-        result.classList.remove("hidden");
-    }
+    result.classList.remove("hidden");
+}
 </script>
 
 </body>
