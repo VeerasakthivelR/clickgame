@@ -2,183 +2,307 @@
 <html lang="en">
 <head>
 <meta charset="UTF-8">
-<title>Click Game 🎮</title>
-<meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+<title>Bomb Survival 💣</title>
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
 
 <style>
+:root {
+    --bg: rgba(0,0,0,0.65);
+    --btn: rgba(255,255,255,0.15);
+    --text: #fff;
+    --accent: #34C759;
+}
+
 * {
     box-sizing: border-box;
+    -webkit-tap-highlight-color: transparent;
 }
 
 body {
     margin: 0;
     height: 100vh;
-    font-family: Arial, sans-serif;
-    background: url("https://images.unsplash.com/photo-1500530855697-b586d89ba3ee") center/cover no-repeat;
+    font-family: -apple-system, BlinkMacSystemFont, Arial, sans-serif;
+    background: radial-gradient(circle at top, #222, #000);
+    color: var(--text);
 }
 
-.overlay {
-    backdrop-filter: blur(6px);
-    background: rgba(0,0,0,0.6);
+.screen {
     width: 100%;
     height: 100%;
+    padding: env(safe-area-inset-top) env(safe-area-inset-right)
+             env(safe-area-inset-bottom) env(safe-area-inset-left);
+    backdrop-filter: blur(6px);
+    background: var(--bg);
     display: flex;
     flex-direction: column;
-    justify-content: center;
     align-items: center;
+    justify-content: center;
     text-align: center;
-    color: white;
-    padding: 20px;
 }
+.hidden { display: none; }
 
-h1, h2 {
-    margin-bottom: 20px;
+h1 { font-size: 26px; margin-bottom: 6px; }
+h2 { font-size: 18px; margin-bottom: 8px; }
+
+input {
+    width: 220px;
+    padding: 12px;
+    border-radius: 12px;
+    border: none;
+    margin: 10px 0;
+    font-size: 15px;
+    text-align: center;
 }
 
 button {
-    padding: 14px 22px;
-    font-size: 18px;
     border: none;
-    border-radius: 10px;
-    cursor: pointer;
+    border-radius: 14px;
+    padding: 12px 22px;
+    margin-top: 10px;
+    font-size: 15px;
+    background: var(--accent);
+    color: #000;
 }
 
-.yes { background: #4CAF50; color: #fff; }
-.no { background: #f44336; color: #fff; }
+/* Toggles */
+.toggle {
+    font-size: 14px;
+    margin-top: 6px;
+}
+
+/* Leaderboard */
+.board {
+    font-size: 14px;
+    margin-top: 10px;
+    opacity: 0.9;
+}
+
+/* Watermark (HOME ONLY) */
+.watermark {
+    font-size: 11px;
+    opacity: 0.45;
+    margin-top: 14px;
+    user-select: none;
+    pointer-events: none;
+}
+
+/* Game */
+.scorebar {
+    font-size: 14px;
+    margin-bottom: 6px;
+}
 
 .grid {
     display: grid;
     grid-template-columns: repeat(3, 1fr);
-    gap: 12px;
+    gap: 14px;
     width: 100%;
     max-width: 360px;
 }
 
 .game-btn {
-    background: #2196F3;
-    color: white;
-    padding: 14px;
-    font-size: 16px;
-    border-radius: 10px;
+    background: var(--btn);
+    height: 52px;
+    border-radius: 14px;
+    font-size: 18px;
+    color: var(--text);
+    display: flex;
+    align-items: center;
+    justify-content: center;
 }
 
-.hidden {
-    display: none;
-}
-
-.big {
-    font-size: 32px;
-    animation: pop 1s infinite alternate;
-}
-
-@keyframes pop {
-    from { transform: scale(1); }
-    to { transform: scale(1.15); }
-}
-
-.explode {
+/* Bomb shake */
+.bomb {
     animation: shake 0.4s infinite;
 }
-
 @keyframes shake {
-    0% { transform: translate(0); }
-    25% { transform: translate(5px); }
-    50% { transform: translate(-5px); }
-    75% { transform: translate(5px); }
-    100% { transform: translate(0); }
+    0% { transform: translateX(0); }
+    25% { transform: translateX(6px); }
+    50% { transform: translateX(-6px); }
+    75% { transform: translateX(6px); }
+    100% { transform: translateX(0); }
 }
 </style>
 </head>
 
 <body>
 
-<div class="overlay" id="home">
-    <h1>Are you ready to play?</h1>
-    <div>
-        <button class="yes" onclick="startGame()">Yes</button>
-        <button class="no" onclick="missed()">No</button>
+<!-- HOME -->
+<div class="screen" id="home">
+    <h1>Bomb Survival 💣</h1>
+    <p>Safe click = +1 · Bomb = Game Over</p>
+
+    <input id="playerName" placeholder="Enter your name" maxlength="12">
+
+    <div class="toggle">
+        <label><input type="checkbox" id="soundToggle"> 🔊 Sound</label>
+    </div>
+    <div class="toggle">
+        <label><input type="checkbox" id="vibrationToggle"> 🎮 Vibration</label>
+    </div>
+
+    <div class="board" id="leaderboard"></div>
+
+    <button onclick="startGame()">Start Game</button>
+
+    <!-- Watermark -->
+    <div class="watermark">
+        Game designed by Veerasakthivel
     </div>
 </div>
 
-<div class="overlay hidden" id="game">
-    <h2>Tap any button 👇</h2>
+<!-- GAME -->
+<div class="screen hidden" id="game">
+    <div class="scorebar">
+        👤 <span id="nameLabel"></span> |
+        Score: <span id="score">0</span> |
+        Combo: <span id="combo">x1</span> |
+        Time: <span id="time">120</span>s
+    </div>
+    <h2>Tap carefully 👇</h2>
     <div class="grid" id="buttons"></div>
 </div>
 
-<div class="overlay hidden" id="result">
-    <h1 id="resultText" class="big"></h1>
+<!-- RESULT -->
+<div class="screen hidden" id="result">
+    <h1 id="resultText"></h1>
+    <p id="finalScore"></p>
+    <button onclick="resetGame()">🔁 Play Again</button>
 </div>
 
-<!-- Audio -->
+<!-- AUDIO -->
 <audio id="bombSound" src="bomb.mp3" preload="auto"></audio>
-<audio id="winSound" src="win.mp3" preload="auto"></audio>
+<audio id="tickSound" src="tick.mp3" preload="auto"></audio>
+<audio id="clockSound" src="clock.mp3" loop preload="auto"></audio>
 
 <script>
 const totalButtons = 15;
-let bombIndex = Math.floor(Math.random() * totalButtons);
-let winIndex = Math.floor(Math.random() * totalButtons);
+const bombCount = 3;
+const GAME_TIME = 120;
 
-while (winIndex === bombIndex) {
-    winIndex = Math.floor(Math.random() * totalButtons);
+let bombIndexes = [];
+let score = 0;
+let combo = 1;
+let timeLeft = GAME_TIME;
+let timer = null;
+let player = "";
+
+function vibrate(pattern) {
+    if (!vibrationToggle.checked) return;
+    navigator.vibrate?.(pattern);
 }
 
-function unlockAudio() {
-    const bomb = document.getElementById("bombSound");
-    const win = document.getElementById("winSound");
-
-    bomb.play().then(() => bomb.pause()).catch(()=>{});
-    win.play().then(() => win.pause()).catch(()=>{});
+function playSound(audio, volume) {
+    if (!soundToggle.checked) return;
+    audio.currentTime = 0;
+    audio.volume = volume;
+    audio.play().catch(()=>{});
 }
 
-function missed() {
-    document.getElementById("home").innerHTML =
-        "<h1>Ohh 😔 You missed the gameplay!</h1>";
+function loadLeaderboard() {
+    const data = JSON.parse(localStorage.getItem("leaderboard") || "[]");
+    leaderboard.innerHTML =
+        "🏆 Leaderboard<br>" +
+        (data.length ? data.map(e => `${e.name}: ${e.score}`).join("<br>") : "No scores yet");
+}
+
+function saveScore() {
+    let data = JSON.parse(localStorage.getItem("leaderboard") || "[]");
+    data.push({ name: player, score });
+    data.sort((a,b)=>b.score-a.score);
+    data = data.slice(0,5);
+    localStorage.setItem("leaderboard", JSON.stringify(data));
 }
 
 function startGame() {
-    unlockAudio(); // 🔥 MOBILE AUDIO FIX
+    if (!playerName.value.trim()) {
+        alert("Please enter your name");
+        return;
+    }
 
-    document.getElementById("home").classList.add("hidden");
-    document.getElementById("game").classList.remove("hidden");
+    player = playerName.value.trim();
+    nameLabel.textContent = player;
 
-    const container = document.getElementById("buttons");
-    container.innerHTML = "";
+    score = 0;
+    combo = 1;
+    timeLeft = GAME_TIME;
 
+    scoreEl.textContent = 0;
+    comboEl.textContent = "x1";
+    timeEl.textContent = timeLeft;
+
+    bombIndexes = [];
+    while (bombIndexes.length < bombCount) {
+        const r = Math.floor(Math.random() * totalButtons);
+        if (!bombIndexes.includes(r)) bombIndexes.push(r);
+    }
+
+    buttons.innerHTML = "";
     for (let i = 0; i < totalButtons; i++) {
-        const btn = document.createElement("button");
-        btn.className = "game-btn";
-        btn.textContent = "Click Me";
-        btn.onclick = () => handleClick(i, btn);
-        container.appendChild(btn);
+        const b = document.createElement("button");
+        b.className = "game-btn";
+        b.textContent = "Click";
+        b.onclick = () => handleClick(i, b);
+        buttons.appendChild(b);
     }
+
+    timer = setInterval(() => {
+        timeLeft--;
+        timeEl.textContent = timeLeft;
+        if (timeLeft <= 0) endGame("⏱️ Time Up!");
+    }, 1000);
+
+    if (soundToggle.checked) {
+        clockSound.volume = 0.15;
+        clockSound.play().catch(()=>{});
+    }
+
+    home.classList.add("hidden");
+    game.classList.remove("hidden");
 }
 
-function handleClick(index, btn) {
-    if (index === bombIndex) {
-        document.getElementById("bombSound").play();
-        endGame("💣 BOOM! You are OUT 💥", true);
-    }
-    else if (index === winIndex) {
-        document.getElementById("winSound").play();
-        endGame("🎉 WOW! You WON the PRIZE 🎁", false);
-    }
-    else {
-        btn.textContent = "Better luck next time 😌";
+function handleClick(i, btn) {
+    if (bombIndexes.includes(i)) {
+        playSound(bombSound, 0.6);
+        vibrate([300,150,300]);
+        endGame("💣 BOOM! You’re Out");
+    } else {
+        playSound(tickSound, 0.25);
+        score += combo;
+        combo++;
+        scoreEl.textContent = score;
+        comboEl.textContent = "x" + combo;
+        btn.textContent = "❌";
         btn.disabled = true;
-        setTimeout(() => btn.style.visibility = "hidden", 600);
+        btn.style.opacity = "0";
     }
 }
 
-function endGame(message, isBomb) {
-    document.getElementById("game").classList.add("hidden");
-    const result = document.getElementById("result");
-    const text = document.getElementById("resultText");
+function endGame(text) {
+    clearInterval(timer);
+    clockSound.pause();
+    saveScore();
+    loadLeaderboard();
 
-    text.textContent = message;
-    if (isBomb) result.classList.add("explode");
-
+    game.classList.add("hidden");
     result.classList.remove("hidden");
+    result.classList.add("bomb");
+
+    resultText.textContent = text;
+    finalScore.textContent = `${player}, your score: ${score}`;
 }
+
+function resetGame() {
+    result.classList.remove("bomb");
+    result.classList.add("hidden");
+    home.classList.remove("hidden");
+}
+
+const scoreEl = document.getElementById("score");
+const comboEl = document.getElementById("combo");
+const timeEl = document.getElementById("time");
+
+loadLeaderboard();
 </script>
 
 </body>
